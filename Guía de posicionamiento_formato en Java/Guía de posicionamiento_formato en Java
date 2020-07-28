@@ -1,0 +1,86 @@
+
+package com.example.guia_posicion;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.pm.ActivityInfo;
+import android.os.Bundle;
+
+public class MainActivity extends AppCompatActivity {
+    Guia dibujo;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        dibujo = new Guia(this);
+        setContentView(dibujo);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+    }
+}
+
+
+
+package com.example.guia_posicion;
+
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.view.Display;
+import android.view.View;
+import android.view.WindowManager;
+
+public class Guia extends View implements SensorEventListener {
+    Paint pincel = new Paint();
+    int alto, ancho;
+    int tamaño=40;
+    int borde=12;
+    float ejeX=0,ejeY=0,ejeZ=0;
+    String X,Y,Z;
+    public Guia(Context interfaz){
+        super(interfaz);
+        SensorManager smAdministrador = (SensorManager) getContext().getSystemService(Context.SENSOR_SERVICE);
+        Sensor snsRotacion =  smAdministrador.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        smAdministrador.registerListener(this,snsRotacion,SensorManager.SENSOR_DELAY_FASTEST);
+        Display pantalla = ((WindowManager) getContext() .getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+        ancho=pantalla.getWidth();
+        alto=pantalla.getHeight();
+    }
+    @Override
+    public void onSensorChanged(SensorEvent cambio){
+        ejeX-=cambio.values[0];
+        X=Float.toString(ejeX);
+        if (ejeX < (tamaño+borde)){
+            ejeX = (tamaño+borde);
+        }
+        else if(ejeX > (ancho-(tamaño+borde))){
+            ejeX=ancho-(tamaño+borde);
+        }
+        ejeY-=cambio.values[1];
+        Y=Float.toString(ejeY);
+        if (ejeY < (tamaño+borde)){
+            ejeY = (tamaño+borde);
+        }
+        else if(ejeY > (ancho-(tamaño+borde))){
+            ejeY=ancho-(tamaño+borde);
+        }
+        ejeZ=cambio.values[2];
+        Z=String.format("%.2f",ejeZ);
+        invalidate();
+    }
+    @Override
+    public void onAccuracyChanged(Sensor sensor,int accuracy){
+    }
+    @Override
+    public void onDraw(Canvas lienzo){
+        pincel.setColor(Color.GREEN);
+        lienzo.drawCircle(ejeX,ejeY,ejeZ+tamaño,pincel);
+        pincel.setColor(Color.WHITE);
+        pincel.setTextSize(20);
+        lienzo.drawText("Smeza",ejeX-30,ejeY+3,pincel);
+
+    }
+}
